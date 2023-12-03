@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rain Detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Montserrat";
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </head>
+  <body
+    class="min-h-screen text-gray-500 bg-gray-50 flex items-center flex-col justify-center space-y-8"
+  >
+    <div class="text-center">
+      <div id="jam" class="text-3xl">00:00:00</div>
+      <div class="text-sm" id="tanggal">-</div>
+    </div>
+    <div class="flex items-center space-x-20">
+      <div
+        class="rounded-full p-10 h-[350px] text-white w-[350px] bg-green-400 shadow-lg border-[12px] border-white flex items-center justify-center"
+        id="cerah"
+      >
+        <div>
+          <svg
+            fill="#ffffff"
+            height="150px"
+            width="150px"
+            version="1.1"
+            id="cerah"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 0 512.001 512.001"
+            xml:space="preserve"
+            stroke="#ffffff"
+          >
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g
+              id="SVGRepo_tracerCarrier"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></g>
+            <g id="SVGRepo_iconCarrier">
+              <g>
+                <g>
+                  <path
+                    d="M434.674,95.532l-21.28,29.291c8.512,6.184,16.408,13.281,23.469,21.096l26.861-24.275 C454.983,111.972,445.21,103.187,434.674,95.532z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M363.611,63.913l-7.476,35.425c10.277,2.169,20.358,5.438,29.96,9.715l14.729-33.073 C388.897,70.667,376.377,66.606,363.611,63.913z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M437.185,347.623c-7.038,7.838-14.911,14.96-23.401,21.169l21.372,29.223c10.51-7.686,20.256-16.502,28.966-26.201 L437.185,347.623z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M486.768,153.192l-31.3,18.196c5.294,9.104,9.632,18.774,12.896,28.745l34.409-11.262 C498.721,176.492,493.335,164.486,486.768,153.192z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M468.513,293.301c-3.231,9.984-7.539,19.67-12.803,28.791l31.358,18.097c6.529-11.318,11.878-23.341,15.889-35.737 L468.513,293.301z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M510.956,227.115l-36.002,3.816c0.559,5.287,0.844,10.676,0.841,16.018c0,5.182-0.267,10.405-0.792,15.524l36.016,3.7 c0.65-6.345,0.981-12.813,0.981-19.222C512.002,240.341,511.651,233.667,510.956,227.115z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M185.901,121.935c-8.73,9.703-16.462,20.335-22.98,31.601l31.337,18.13c5.261-9.093,11.503-17.677,18.556-25.515 L185.901,121.935z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M248.691,76.145c-11.879,5.322-23.249,11.923-33.795,19.618l21.34,29.246c8.509-6.209,17.681-11.534,27.26-15.825 L248.691,76.145z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M324.74,59.893c-13.084,0.015-26.159,1.395-38.863,4.104l7.552,35.408c10.239-2.183,20.786-3.296,31.351-3.308 L324.74,59.893z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <path
+                    d="M439.591,246.949c0-63.217-51.431-114.648-114.648-114.648c-42.385,0-79.47,23.121-99.309,57.412 c-8.513-2.024-17.385-3.105-26.509-3.105c-57.058,0-104.515,41.9-113.22,96.545h-1.428C37.896,283.154,0,321.049,0,367.631 s37.896,84.477,84.477,84.477h229.296c46.582,0,84.477-37.895,84.477-84.477c0-10.055-1.774-19.701-5.011-28.654 C421.347,318.064,439.591,284.597,439.591,246.949z M313.773,415.904H84.477c-26.618,0-48.273-21.655-48.273-48.273 c0-26.618,21.655-48.273,48.273-48.273h36.205v-18.102c0-43.254,35.19-78.443,78.443-78.443c43.254,0,78.443,35.19,78.443,78.443 v18.102h36.205c26.618,0,48.273,21.655,48.273,48.273C362.046,394.249,340.39,415.904,313.773,415.904z M373.795,308.257 c-15.321-15.488-36.568-25.103-60.022-25.103h-1.428c-5.329-33.455-25.197-62.111-52.886-79.322 c14.047-21.262,38.149-35.326,65.484-35.326c43.254,0,78.443,35.19,78.443,78.443C403.386,271.742,391.81,293.871,373.795,308.257 z"
+                  ></path>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div
+        class="rounded-full p-10 h-[250px] text-white w-[250px] bg-blue-400 shadow-lg border-[12px] border-white flex items-center justify-center"
+      >
+        <div class="text-3xl text-center flex flex-col space-y-2.5">
+          <div class="text-sm">Intensitas Hujan</div>
+          <div class="font-semibold text-5xl" id="tetesan">16</div>
+          <div class="text-sm font-bold" id="status">SEDANG HUJAN</div>
+        </div>
+      </div>
+      <div
+        class="rounded-full p-10 h-[350px] text-white w-[350px] bg-green-400 shadow-lg border-[12px] border-white flex items-center justify-center"
+        id="hujan"
+      >
+        <div>
+          <svg
+            fill="#ffffff"
+            version="1.1"
+            height="150px"
+            width="150px"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 0 512 512"
+            xml:space="preserve"
+            stroke="#ffffff"
+          >
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g
+              id="SVGRepo_tracerCarrier"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></g>
+            <g id="SVGRepo_iconCarrier">
+              <g>
+                <g>
+                  <path
+                    d="M424.585,124.878h-1.477c-9.007-56.546-58.115-99.902-117.157-99.902c-50.165,0-93.142,31.306-110.461,75.401 c-54.256,4.808-98.134,46.29-106.598,99.428h-1.477C39.214,199.805,0,239.018,0,287.219c0,48.202,39.214,87.415,87.415,87.415 h237.268c43.96,0,80.429-32.622,86.508-74.927h13.394c48.2,0,87.415-39.213,87.415-87.415 C512,164.091,472.786,124.878,424.585,124.878z M324.683,337.171H87.415c-27.543,0-49.951-22.408-49.951-49.951 c0-27.543,22.408-49.951,49.951-49.951h37.463v-18.732c0-44.758,36.413-81.171,81.171-81.171 c44.758,0,81.171,36.413,81.171,81.171v18.732h37.463c27.543,0,49.951,22.408,49.951,49.951 C374.634,314.763,352.226,337.171,324.683,337.171z M424.585,262.244h-16.143c-10.774-36.066-44.237-62.439-83.759-62.439h-1.477 c-7.464-46.854-42.47-84.625-87.837-96.205c13.974-24.554,40.367-41.161,70.582-41.161c44.758,0,81.171,36.413,81.171,81.171 v18.732h37.463c27.543,0,49.951,22.408,49.951,49.951C474.537,239.836,452.128,262.244,424.585,262.244z"
+                  ></path>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <rect
+                    x="112.39"
+                    y="412.098"
+                    width="37.463"
+                    height="74.927"
+                  ></rect>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <rect
+                    x="187.317"
+                    y="412.098"
+                    width="37.463"
+                    height="74.927"
+                  ></rect>
+                </g>
+              </g>
+              <g>
+                <g>
+                  <rect
+                    x="262.244"
+                    y="412.098"
+                    width="37.463"
+                    height="74.927"
+                  ></rect>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="text-center w-[400px]">
+      <div class="mt-2">
+        <span id="control-value">-</span>
+        <div>
+          <input
+            id="control"
+            type="range"
+            value="0"
+            min="0"
+            max="100"
+            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+          />
+        </div>
+      </div>
+      <div class="text-sm">kontrol intensitas</div>
+    </div>
+  </body>
+
+  <script>
+    const firebaseUrl =
+      "https://aigreen-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+    const bulans = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+
+    function setHujan(value) {
+      document.querySelector("#hujan").classList.remove("!bg-gray-400");
+      document.querySelector("#cerah").classList.remove("!bg-gray-400");
+
+      if (value) {
+        document.querySelector("#status").innerHTML = "SEDANG HUJAN";
+        document.querySelector("#cerah").classList.add("!bg-gray-400");
+      } else {
+        document.querySelector("#status").innerHTML = "TIDAK HUJAN";
+        document.querySelector("#hujan").classList.add("!bg-gray-400");
+      }
+    }
+
+    const control = document.getElementById("control");
+    document.querySelector("#control-value").innerHTML = control.value;
+
+    control.addEventListener("input", () => {
+      document.querySelector("#control-value").innerHTML = control.value;
+    });
+
+    control.addEventListener("change", async () => {
+      await axios.put(firebaseUrl + "/kontrol.json", control.value);
+    });
+
+    async function loadKontrol() {
+      const res = await axios.get(firebaseUrl + "/kontrol.json");
+
+      control.value = res.data;
+      document.querySelector("#control-value").innerHTML = control.value;
+    }
+
+    async function loadData() {
+      const res = await axios.get(firebaseUrl + "/tetesan.json");
+
+      const tetesan = res.data;
+      let hujan = false;
+
+      if (tetesan > control.value) {
+        hujan = true;
+      }
+
+      document.querySelector("#tetesan").innerHTML = Math.round(tetesan);
+      setHujan(hujan);
+
+      loadData();
+    }
+
+    setInterval(() => {
+      const date = new Date();
+      const tanggal = date.getDate();
+      const bulan = date.getMonth();
+      const tahun = date.getFullYear();
+
+      const fullDate = tanggal + " " + bulans[bulan] + " " + tahun;
+
+      const jam =
+        date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+      const menit =
+        date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+      const detik =
+        date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+      const fullHour = jam + ":" + menit + ":" + detik;
+
+      document.querySelector("#jam").innerHTML = fullHour;
+      document.querySelector("#tanggal").innerHTML = fullDate;
+    }, 1000);
+
+    loadData();
+    loadKontrol();
+  </script>
+</html>
