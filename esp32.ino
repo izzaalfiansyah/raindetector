@@ -1,6 +1,6 @@
 //Alarm Pendeteksi hujan
-//Imam Maulana Al'arief
-//Sistem Komputer 19.2 Siliwangi
+//TEAM 6
+//Sistem Komputer 19.2 Jember
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -11,14 +11,33 @@
 #include <HTTPClient.h>
 #include "SPIFFS.h"
 
+#include <Firebase_ESP_Client.h>
+#include <addons/TokenHelper.h>
+#include <addons/RTDBHelper.h>
+
 AsyncWebServer server(80);
+
+
+/* 2. Define the API Key */
+#define API_KEY "AIzaSyB6tHJpz3NY6XNVCxMFT3tC2V19KOSujm4"
+
+/* 3. Define the RTDB URL */
+#define DATABASE_URL "raindetector-81030-default-rtdb.asia-southeast1.firebasedatabase.app" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+
+#define USER_EMAIL "superadmin@admin.com"
+#define USER_PASSWORD "superadmin"
+
+FirebaseData fbdo;
+
+FirebaseAuth auth;
+FirebaseConfig config;
 
 LiquidCrystal_I2C lcd(0x27, 16,2);
 
-const int sensorPin = A0;    //inisialisasi pin button
-const int buzzer = 7;      //inisialisasi pin buzzer
-const int ledGreen = 8;   //inisialisasi pin LED
-const int ledRed = 9;    //inisialisasi pin LED
+const int sensorPin = 34;    //inisialisasi pin button
+const int buzzer = 4;      //inisialisasi pin buzzer
+const int ledGreen = 33;   //inisialisasi pin LED
+const int ledRed = 32;    //inisialisasi pin LED
 
 String ssid;
 String pass;
@@ -38,6 +57,7 @@ IPAddress subnet(255, 255, 0, 0);
 unsigned long previousMillis = 0;
 const long interval = 10000; 
 
+// server firebase. gantien berdasarkan firebasemu. lahh? iki ngerun ga seh?
 const char* firebaseUrl = "https://aigreen-default-rtdb.asia-southeast1.firebasedatabase.app/tetesan.json";
 
 void initSPIFFS() {
@@ -85,14 +105,14 @@ bool initWiFi() {
     return false;
   }
 
-  WiFi.mode(WIFI_STA);
-  localIP.fromString(ip.c_str());
-  localGateway.fromString(gateway.c_str());
-
-  if (!WiFi.config(localIP, localGateway, subnet)){
-    Serial.println("Gagal konfigurasi STA");
-    return false;
-  }
+//  WiFi.mode(WIFI_STA);
+//  localIP.fromString(ip.c_str());
+//  localGateway.fromString(gateway.c_str());
+//
+//  if (!WiFi.config(localIP, localGateway, subnet)){
+//    Serial.println("Gagal konfigurasi STA");
+//    return false;
+//  }
   WiFi.begin(ssid.c_str(), pass.c_str());
   Serial.println("Menghubungkan...");
 
@@ -107,13 +127,34 @@ bool initWiFi() {
     }
   }
 
+  Serial.println("Berhasil terhubung");
   Serial.println(WiFi.localIP());
   return true;
 }
 
+void initFirebase() {
+  Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
+  config.api_key = API_KEY;
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+  config.database_url = DATABASE_URL;
+  config.token_status_callback = tokenStatusCallback; // see addons/TokenHelper.h
+
+  Firebase.reconnectNetwork(true);
+  fbdo.setBSSLBufferSize(4096 /* Rx buffer size in bytes from 512 - 16384 /, 1024 / Tx buffer size in bytes from 512 - 16384 */);
+
+  fbdo.setResponseSize(2048);
+
+  Firebase.begin(&config, &auth);
+
+  Firebase.setDoubleDigits(5);
+
+  config.timeout.serverResponse = 10 * 1000;
+}
+
 void setup()
 {
-  Serial.begin (9600);
+  Serial.begin (115200);
 
   initSPIFFS();
 
@@ -128,6 +169,7 @@ void setup()
   Serial.println(gateway);
 
   if(!initWiFi()) {
+    Serial.print("tes");
     Serial.println("Setting AP (Access Point)");
     WiFi.softAP("ESP-WIFI-MANAGER", NULL);
 
@@ -188,11 +230,9 @@ void setup()
       ESP.restart();
     });
     server.begin();
-  } else {
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(200, "text/plain", "Wifi sudah terhubung.");
-    });
   }
+
+  initFirebase();
 
   pinMode(buzzer, OUTPUT);
   pinMode(ledGreen, OUTPUT);
@@ -202,7 +242,7 @@ void setup()
   lcd.begin (16,2);
   lcd.setBacklight(255); //menghidupkan lampu latar LCD
   lcd.setCursor (0, 0);
-  lcd.print("**SENSOR HUJAN**");
+  lcd.print("*SENSOR HUJAN*");
   lcd.setCursor (0, 1);
   lcd.print("Ardha Pria");
 
@@ -213,49 +253,47 @@ void setup()
 void loop() {
   //membaca nilai dari pin button
   int nilaiSensor = analogRead(sensorPin);
+  int nilai = nilaiSensor / 40.95;
+
+  nilai = nilai - 100;
+
+  if (nilai < 0) {
+    nilai = nilai * -1;
+  }
+
+  Serial.println(nilai);
+  
   //mengecek jika sensor terkena air
   Serial.println (nilaiSensor);
   delay (1000);
   //jika nilaiSensor < 500 (range sensor 0-1023)/sensor terkena air.
   //nyalakan alarm dan LED merah
 
-  if (nilaiSensor <= 500){
+  if (nilai > 50){
     digitalWrite (ledRed, HIGH);
     digitalWrite (buzzer, HIGH);
     digitalWrite (ledGreen, LOW);
     lcd.setCursor(0,0); //Mapping LCD nya
-    lcd.print("**SENSOR HUJAN**"); //(Ganti Nama Anda, Karakter Sebanyak 16 termasuk spasi)
+    lcd.print("*SENSOR HUJAN*"); //(Ganti Nama Anda, Karakter Sebanyak 16 termasuk spasi)
     lcd.setCursor(0,1);
-    lcd.print("*KONDISI  HUJAN*");
+    lcd.print("KONDISI  HUJAN");
     delay(2000);
     lcd.clear(); //Bersihkan LCD dari karakter yg ada
   }
 
   else {
     lcd.setCursor(0,0); //Mapping LCD nya
-    lcd.print("**SENSOR HUJAN**"); //(Ganti Nama Anda, Karakter Sebanyak 16 termasuk spasi)
+    lcd.print("*SENSOR HUJAN*"); //(Ganti Nama Anda, Karakter Sebanyak 16 termasuk spasi)
     lcd.setCursor(0,1);
-    lcd.print(" *CUACA  CERAH* ");
+    lcd.print(" CUACA  CERAH ");
     digitalWrite (ledRed, LOW);
     digitalWrite (buzzer, LOW);
     digitalWrite (ledGreen, HIGH);   
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
-    HTTPClient http;
-
-    http.begin(client, firebaseUrl);
-
-    http.addHeader("Content-Type", "application/json");
-
-    String httpRequestData = String(nilaiSensor);
-
-    int httpResponseCode = http.PUT(httpRequestData);
-
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
-      
-    http.end();
+    if (Firebase.ready()) {
+      Serial.printf("Set intensitas %s\n", Firebase.RTDB.setInt(&fbdo, F("/tetesan"), nilai) ? "ok" : fbdo.errorReason().c_str());
+    }
   }
 }
